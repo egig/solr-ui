@@ -17,10 +17,52 @@ class App extends Component {
 			pages: null,
 			loading: true,
 			selectedOption: [],
+			fq: "",
+			page: 0,
+			pageSize: 10,
+			numFound: 0
 		}
 
 		this.fetchData = this.fetchData.bind(this);
+		this.refreshData = this.refreshData.bind(this);
 	}
+
+	refreshData() {
+
+		let {pageSize, page} = this.state;
+		let fl = "*";
+
+		if(!!this.state.selectedOption.length) {
+			fl = this.state.selectedOption.map(o => o.value).join(",")
+		}
+
+		this.setState({ loading: true });
+
+		let start = (pageSize * (page+1)) - pageSize;
+		let params = {
+			start,
+			rows: pageSize,
+			fl
+		};
+
+		if(this.state.fq.trim() !=="") {
+			params.fq = this.state.fq
+		}
+
+		return axios.get(`/c/${this.state.collection}/select`, {
+			params
+		})
+			.then(r => {
+
+				this.setState({
+					data: r.data.response.docs,
+					pages: Math.ceil(r.data.response.numFound / pageSize),
+					numFound: r.data.response.numFound,
+					loading: false
+				});
+			})
+	}
+
 
 	fetchData(state, instance) {
 
@@ -35,26 +77,28 @@ class App extends Component {
 		this.setState({ loading: true });
 
 		let start = (pageSize * (page+1)) - pageSize;
+		let params = {
+			start,
+			rows: pageSize,
+			fl
+		};
+
+		if(this.state.fq.trim() !=="") {
+			params.fq = this.state.fq
+		}
+
 		return axios.get(`/c/${this.state.collection}/select`, {
-			params: {
-				start,
-				rows: pageSize,
-				fl
-			}
+			params
 		})
 			.then(r => {
-				return {
+
+				this.setState({
+					data: r.data.response.docs,
 					pages: Math.ceil(r.data.response.numFound / pageSize),
-					data: r.data.response.docs
-				}
-			}).then(res => {
-			// Now just get the rows of data to your React Table (and update anything else like total pages or loading)
-			this.setState({
-				data: res.data,
-				pages: res.pages,
-				loading: false
-			});
-		});
+					numFound: r.data.response.numFound,
+					loading: false
+				});
+			})
 	}
 
 
@@ -90,7 +134,6 @@ class App extends Component {
 				Header: f.name,
 				accessor: f.name,
 				Cell: (rowInfo) => {
-					console.log(rowInfo.value)
 					if( typeof rowInfo.value == 'object') {
 						return JSON.stringify(rowInfo.value);
 					}
@@ -106,7 +149,6 @@ class App extends Component {
 				  Header: o.label,
 				  accessor: o.value,
 				  Cell: (rowInfo) => {
-					  console.log(rowInfo.value)
 					  if( typeof rowInfo.value == 'object') {
 						  return JSON.stringify(rowInfo.value);
 					  }
@@ -125,29 +167,67 @@ class App extends Component {
 		});
 
     return (
+    	<div>
+		    <nav className="navbar navbar-dark bg-dark">
+			    <a className="navbar-brand" href="#">Solr UI</a>
+		    </nav>
     	<div className="container">
-		    <Select
-			    isMulti={true}
-			    value={this.state.selectedOption}
-			    onChange={(selectedOption) => {
-				    this.setState({ selectedOption });
-				    console.log(`Option selected:`, selectedOption);
-			    }}
-			    options={fields}
-		    />
+
+		    <div className="row mt-4 mb-4">
+			    <div className="col-12">
+				    <div className="card">
+					    <div className="card-body">
+						    <div className="mb-2">
+							    <label>Filter Query</label>
+							    <div>
+								    <textarea className="form-control" onKeyUp={(e) => {
+								    	this.setState({
+								    		fq:e.target.value,
+									    }, () => {
+										    this.refreshData();
+									    });
+								    }} />
+							    </div>
+						    </div>
+						    <label>Field List</label>
+						    <Select
+							    isMulti={true}
+							    value={this.state.selectedOption}
+							    onChange={(selectedOption) => {
+								    this.setState({ selectedOption });
+								    console.log(`Option selected:`, selectedOption);
+							    }}
+							    options={fields}
+						    />
+				      </div>
+			      </div>
+		      </div>
+		    </div>
 
 		    {!!this.state.collection &&
-		    <ReactTable
-			    manual
-			    data={this.state.data}
-			    pages={this.state.pages}
-			    loading={this.state.loading}
-			    columns={columns}
-			    defaultPageSize={10}
-			    className="-striped -highlight"
-			    onFetchData={this.fetchData}
-		    />
-		    }
+			    <div className="row">
+				    <div className="col-12">
+					    <div className="card">
+						    <div className="card-body">
+							    <h5 className="card-title">{this.state.collection} Found: {this.state.numFound}</h5>
+							    <ReactTable
+								    manual
+								    data={this.state.data}
+								    pages={this.state.pages}
+								    loading={this.state.loading}
+								    columns={columns}
+								    defaultPageSize={10}
+								    className="-striped -highlight"
+								    onFetchData={this.fetchData}
+							      onPageChange={(pageIndex) => { this.setState({page: pageIndex}) }}
+								    onPageSizeChange={(pageSize,pageIndex) => { this.setState({pageSize: pageSize}) }}
+							    />
+						    </div>
+					    </div>
+				    </div>
+			    </div>
+			    }
+	    </div>
 	    </div>
     );
   }
