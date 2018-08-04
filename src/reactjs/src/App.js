@@ -11,6 +11,7 @@ class App extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			collection: null,
 			fields: [],
 			data: [],
 			pages: null,
@@ -34,7 +35,7 @@ class App extends Component {
 		this.setState({ loading: true });
 
 		let start = (pageSize * (page+1)) - pageSize;
-		return axios.get("/select", {
+		return axios.get(`/c/${this.state.collection}/select`, {
 			params: {
 				start,
 				rows: pageSize,
@@ -58,23 +59,28 @@ class App extends Component {
 
 
 	componentDidMount() {
-		axios.get("/fields")
+
+		axios.get("/status")
 			.then(r => {
 
-				this.setState({
-					fields: r.data.fields
-				})
-			});
+				let collections = [];
+				for(let collection in r.data.status) {
+					collections.push(r.data.status[collection])
+				}
 
-		// axios.get("/select?sort=_version_ desc")
-		// 	.then(r => {
-		//
-		// 		this.setState({
-		// 			docs: r.data.response.docs,
-		// 			pages: Math.ceil(r.data.response.numFound /10),
-		// 			loading: false
-		// 		})
-		// 	});
+				this.setState({
+					collection: collections[0].name
+				})
+			})
+			.then(r => {
+				axios.get(`/c/${this.state.collection}/fields`)
+					.then(r => {
+
+						this.setState({
+							fields: r.data.fields
+						})
+					});
+			})
 	}
 
   render() {
@@ -119,7 +125,7 @@ class App extends Component {
 		});
 
     return (
-    	<div>
+    	<div className="container">
 		    <Select
 			    isMulti={true}
 			    value={this.state.selectedOption}
@@ -130,6 +136,7 @@ class App extends Component {
 			    options={fields}
 		    />
 
+		    {!!this.state.collection &&
 		    <ReactTable
 			    manual
 			    data={this.state.data}
@@ -140,6 +147,7 @@ class App extends Component {
 			    className="-striped -highlight"
 			    onFetchData={this.fetchData}
 		    />
+		    }
 	    </div>
     );
   }
