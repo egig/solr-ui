@@ -4,7 +4,7 @@ const express = require('express');
 const axios = require('axios');
 const querystring = require("querystring");
 const config = require("./config.json");
-const { doFQRequest } = require('./src/server/solrUtil');
+const { doFQRequest, doFacetRequest } = require('./src/server/solrUtil');
 
 const app = express();
 
@@ -46,13 +46,40 @@ app.get('/pages/:page_name', (req,res ) => {
 						datasets.push(p)
 					}
 
+					/// Get the actual data
+					if(ds.qtype === "facet_count") {
+						let p = doFacetRequest(ds.qfacet_field, ds.qcollection)
+							.then(r => {
+							let facets = r.data.facet_counts.facet_fields[ds.qfacet_field];
+							let data = [];
+							let labels = [];
+							facets.map((f, i) => {
+								if(i%2 === 0) {
+									labels.push(f);
+								} else {
+									data.push(f);
+								}
+							});
+							let dataset = Object.assign({}, ds);
+							dataset.data = data;
+							dataset.labels = labels;
+							return dataset;
+						});
+
+						datasets.push(p)
+					}
+
 				});
 
 				return Promise.all(datasets)
-					.then(datasetr => {
+					.then(datasetsR => {
 
 						let chart = Object.assign({}, c);
-						chart.data.datasets = datasetr;
+						// Get first dataset labels if there is any
+						if(typeof datasetsR[0].labels !== 'undefined') {
+							chart.data.labels = datasetsR[0].labels;
+						}
+						chart.data.datasets = datasetsR;
 
 						return chart;
 					})
