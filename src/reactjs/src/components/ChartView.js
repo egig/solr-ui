@@ -22,7 +22,7 @@ class ChartView extends Component {
 	render() {
 
 		return (
-				<div className="col-4">
+				<div className="col-4 mb-4">
 					<div className="card">
 						<div className="card-body">
 							<canvas id="myChart" width="400" height="400" ref={(chart) => { this.chart = chart }} />
