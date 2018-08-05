@@ -4,12 +4,78 @@ const express = require('express');
 const axios = require('axios');
 const querystring = require("querystring");
 const config = require("./config.json");
+const { doFQRequest } = require('./src/server/solrUtil');
 
 const app = express();
 
 app.use(express.static(__dirname + '/src/reactjs/build'));
 
 // http://localhost:8983/solr/
+
+app.get('/pages/:page_name', (req,res ) => {
+
+	(async function () {
+
+		try {
+
+			let pageConfig = require(`./pages/${req.params.page_name}`);
+
+			let charts = pageConfig.charts.map(c => {
+
+				let datasets = [];
+				c.data.datasets.map(ds => {
+
+					let data_values;
+
+					/// Get the actual data
+					if(ds.qtype === "fq_count") {
+						data_values = ds.q.map(q => {
+							return doFQRequest(q, ds.qcollection).then(r=> {
+								return r.data.response.numFound
+							})
+						});
+
+						let p = Promise.all(data_values).then(r => {
+							// Here we might want to add backgroudColor or border color
+
+							let dataset = Object.assign({}, ds);
+							dataset.data = r;
+							return dataset;
+						});
+
+						datasets.push(p)
+					}
+
+				});
+
+				return Promise.all(datasets)
+					.then(datasetr => {
+
+						let data = Object.assign({}, c.data);
+						data.datasets = datasetr;
+
+						return {
+							type: c.type,
+							data
+						}
+					})
+			});
+
+			let c = await Promise.all(charts);
+
+			res.send({
+				title: pageConfig.title,
+				charts: c,
+			});
+
+		} catch (e) {
+			console.log(e);
+			res.status(500).send(e.message);
+		}
+
+	})();
+
+})
 
 app.get('/status', (req,res ) => {
 
