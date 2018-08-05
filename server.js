@@ -51,13 +51,10 @@ app.get('/pages/:page_name', (req,res ) => {
 				return Promise.all(datasets)
 					.then(datasetr => {
 
-						let data = Object.assign({}, c.data);
-						data.datasets = datasetr;
+						let chart = Object.assign({}, c);
+						chart.data.datasets = datasetr;
 
-						return {
-							type: c.type,
-							data
-						}
+						return chart;
 					})
 			});
 
@@ -75,7 +72,7 @@ app.get('/pages/:page_name', (req,res ) => {
 
 	})();
 
-})
+});
 
 app.get('/status', (req,res ) => {
 

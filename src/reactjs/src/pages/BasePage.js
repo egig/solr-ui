@@ -3,6 +3,7 @@ import "react-table/react-table.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Chart from 'chart.js'
 import axios from 'axios';
+import ChartView from '../components/ChartView';
 
 class BasePage extends Component {
 
@@ -10,25 +11,16 @@ class BasePage extends Component {
 		super(props);
 
 		this.state = {
-			chartConfig: null
+			charts: []
 		}
 	}
-
-
-	componentDidUpdate() {
-
-		if(this.state.chartConfig) {
-			let myChart = new Chart(this.chart, this.state.chartConfig);
-		}
-	}
-
 
 	componentDidMount() {
 
 		axios.get(`/pages/${this.props.match.params.page_name}`)
 			.then(r => {
 				this.setState({
-					chartConfig: r.data.charts[0]
+					charts: r.data.charts
 				})
 			});
 	}
@@ -36,12 +28,10 @@ class BasePage extends Component {
 	render() {
 
 		return (
-			<div>
-				<div className="row mt-4 mb-4">
-					<div className="col-4">
-						<canvas id="myChart" width="400" height="400" ref={(chart) => { this.chart = chart }} />
-					</div>
-				</div>
+			<div className="row mt-4">
+				{this.state.charts.map(chartConfig => {
+					return <ChartView chartConfig={chartConfig} />
+				})}
 			</div>
 		);
 	}
