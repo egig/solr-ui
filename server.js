@@ -146,12 +146,12 @@ app.get('/c/:collection/select', (req,res ) => {
 });
 
 app.get('/c/:collection/fields', (req, res) => {
-	
+
 	(async function () {
 
 		try {
 
-			let r = await axios.get(`http://localhost:8983/solr/${req.params.collection}/schema/fields`);
+			let r = await axios.get(`${config.SOLR_BASE_URL}/${req.params.collection}/schema/fields`);
 			res.send(r.data);
 
 		} catch (e) {
