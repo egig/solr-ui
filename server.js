@@ -30,7 +30,7 @@ app.get('/pages/:page_name', (req,res ) => {
 					/// Get the actual data
 					if(ds.qtype === "fq_count") {
 						data_values = ds.q.map(q => {
-							return doFQRequest(q, ds.qcollection).then(r=> {
+							return doFQRequest(q, ds.qcollection, ds.qurl).then(r=> {
 								return r.data.response.numFound
 							})
 						});
@@ -48,7 +48,7 @@ app.get('/pages/:page_name', (req,res ) => {
 
 					/// Get the actual data
 					if(ds.qtype === "facet_count") {
-						let p = doFacetRequest(ds.qfacet_field, ds.qcollection)
+						let p = doFacetRequest(ds.qfacet_field, ds.qcollection, ds.qurl)
 							.then(r => {
 							let facets = r.data.facet_counts.facet_fields[ds.qfacet_field];
 							let data = [];

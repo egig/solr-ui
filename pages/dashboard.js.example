@@ -1,5 +1,5 @@
 module.exports = {
-	title: "Page Example",
+	title: "Dashboard",
 	charts: [
 		{
 			options: {
@@ -16,6 +16,7 @@ module.exports = {
 						backgroundColor: "green",
 						label: "Num of Resto",
 						qtype: "fq_count",
+						qurl: 'http://localhost:8983/solr',
 						qcollection: 'collection1',
 						q: ["cityId:2",  "cityId:1", "cityId:3"]
 					}
@@ -38,6 +39,7 @@ module.exports = {
 						fill: false,
 						label: "Num of Resto",
 						qtype: "fq_count",
+						qurl: 'http://localhost:8983/solr',
 						qcollection: 'collection1',
 						q: ["cityId:2",  "cityId:1", "cityId:3"]
 					}
@@ -74,8 +76,89 @@ module.exports = {
 						],
 						label: "Num of Resto",
 						qtype: "facet_count",
+						qurl: 'http://localhost:8983/solr',
 						qcollection: 'collection1',
 						qfacet_field: 'cityName'
+					}
+				]
+			}
+		},
+		{
+			options: {
+				title: {
+					display: true,
+					text: 'Test Facet 2'
+				},
+				legend: {
+					display: false
+				}
+			},
+			type: "pie",
+			data: {
+				labels: [],
+				datasets: [
+					{
+						backgroundColor: [
+							'rgba(255, 99, 132, 0.2)',
+							'rgba(54, 162, 235, 0.2)',
+							'rgba(255, 206, 86, 0.2)',
+							'rgba(75, 192, 192, 0.2)',
+							'rgba(153, 102, 255, 0.2)',
+							'rgba(255, 159, 64, 0.2)'
+						],
+						borderColor: [
+							'rgba(255,99,132,1)',
+							'rgba(54, 162, 235, 1)',
+							'rgba(255, 206, 86, 1)',
+							'rgba(75, 192, 192, 1)',
+							'rgba(153, 102, 255, 1)',
+							'rgba(255, 159, 64, 1)'
+						],
+						label: "Num of Resto",
+						qtype: "facet_count",
+						qurl: 'http://localhost:8983/solr',
+						qcollection: 'collection1',
+						qfacet_field: 'foodType'
+					}
+				]
+			}
+		},
+		{
+			options: {
+				title: {
+					display: true,
+					text: 'Instagram per City'
+				},
+				legend: {
+					display: true
+				}
+			},
+			type: "pie",
+			data: {
+				labels: [],
+				datasets: [
+					{
+						backgroundColor: [
+							'rgba(255, 99, 132, 0.2)',
+							'rgba(54, 162, 235, 0.2)',
+							'rgba(255, 206, 86, 0.2)',
+							'rgba(75, 192, 192, 0.2)',
+							'rgba(153, 102, 255, 0.2)',
+							'rgba(255, 159, 64, 0.2)'
+						],
+						borderColor: [
+							'rgba(255,99,132,1)',
+							'rgba(54, 162, 235, 1)',
+							'rgba(255, 206, 86, 1)',
+							'rgba(75, 192, 192, 1)',
+							'rgba(153, 102, 255, 1)',
+							'rgba(255, 159, 64, 1)'
+						],
+						label: "Instagram per City",
+						qtype: "facet_count",
+						qurl: 'http://kimchi.qraved.com:8983/solr',
+						qcollection: 'collection-media',
+						qfacet_field: 'restaurant_city_name'
 					}
 				]
 			}

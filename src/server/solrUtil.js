@@ -2,7 +2,7 @@ const axios = require("axios");
 const querystring = require("querystring");
 const config = require("../../config.json");
 
-const doFQRequest = function (fq, collection) {
+const doFQRequest = function (fq, collection, url) {
 	let queryObj = {
 		inden: "on",
 		q: "*:*",
@@ -12,10 +12,10 @@ const doFQRequest = function (fq, collection) {
 
 	let qo = Object.assign({}, queryObj);
 	let qs = querystring.stringify(qo);
-	return axios.get(`${config.SOLR_BASE_URL}/${collection}/select?${qs}`);
+	return axios.get(`${url}/${collection}/select?${qs}`);
 }
 
-const doFacetRequest = function (facetField, collection) {
+const doFacetRequest = function (facetField, collection, url) {
 	let queryObj = {
 		inden: "on",
 		facet: "on",
@@ -26,7 +26,7 @@ const doFacetRequest = function (facetField, collection) {
 
 	let qo = Object.assign({}, queryObj);
 	let qs = querystring.stringify(qo);
-	return axios.get(`${config.SOLR_BASE_URL}/${collection}/select?${qs}`);
+	return axios.get(`${url}/${collection}/select?${qs}`);
 }
 
 
