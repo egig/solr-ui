@@ -107,7 +107,7 @@ app.get('/status', (req,res ) => {
 
 		try {
 
-			let r = await axios.get(`${config.SOLR_BASE_URL}/admin/cores?action=STATUS&wt=json`);
+			let r = await axios.get(`${req.query.solr_url}/admin/cores?action=STATUS&wt=json`);
 			res.send(r.data);
 
 		} catch (e) {
@@ -117,7 +117,7 @@ app.get('/status', (req,res ) => {
 
 	})();
 
-})
+});
 
 app.get('/c/:collection/select', (req,res ) => {
 
@@ -126,14 +126,14 @@ app.get('/c/:collection/select', (req,res ) => {
 		try {
 
 			let queryObj = {
-				inden: "on",
+				indent: "on",
 				q: "*:*",
 				wt: "json"
 			};
 
 			let qo = Object.assign({}, queryObj, req.query);
 			let qs = querystring.stringify(qo);
-			let r = await axios.get(`${config.SOLR_BASE_URL}/${req.params.collection}/select?${qs}`);
+			let r = await axios.get(`${req.query.solr_url}/${req.params.collection}/select?${qs}`);
 			res.send(r.data);
 
 		} catch (e) {
@@ -151,7 +151,7 @@ app.get('/c/:collection/fields', (req, res) => {
 
 		try {
 
-			let r = await axios.get(`${config.SOLR_BASE_URL}/${req.params.collection}/schema/fields`);
+			let r = await axios.get(`${req.query.solr_url}/${req.params.collection}/schema/fields`);
 			res.send(r.data);
 
 		} catch (e) {

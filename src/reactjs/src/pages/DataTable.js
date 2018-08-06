@@ -11,6 +11,7 @@ class DataTable extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			solrURL: "",
 			collections: [],
 			collectionName: null,
 			selectedCollection: null,
@@ -28,6 +29,7 @@ class DataTable extends Component {
 		this.fetchData = this.fetchData.bind(this);
 		this.refreshData = this.refreshData.bind(this);
 		this.refreshField = this.refreshField.bind(this);
+		this.loadCollection = this.loadCollection.bind(this);
 	}
 
 		refreshField() {
@@ -43,39 +45,40 @@ class DataTable extends Component {
 
 		refreshData() {
 
-		let {pageSize, page} = this.state;
-		let fl = "*";
+			let {pageSize, page} = this.state;
+			let fl = "*";
 
-		if(!!this.state.selectedOption.length) {
-			fl = this.state.selectedOption.map(o => o.value).join(",")
-		}
+			if(!!this.state.selectedOption.length) {
+				fl = this.state.selectedOption.map(o => o.value).join(",")
+			}
 
-		this.setState({ loading: true });
+			this.setState({ loading: true });
 
-		let start = (pageSize * (page+1)) - pageSize;
-		let params = {
-			start,
-			rows: pageSize,
-			fl
-		};
+			let start = (pageSize * (page+1)) - pageSize;
+			let params = {
+				solr_url: this.state.solrURL,
+				start,
+				rows: pageSize,
+				fl
+			};
 
-		if(this.state.fq.trim() !=="") {
-			params.fq = this.state.fq
-		}
+			if(this.state.fq.trim() !=="") {
+				params.fq = this.state.fq
+			}
 
-		return axios.get(`/c/${this.state.collectionName}/select`, {
-			params
-		})
-			.then(r => {
-
-				this.setState({
-					data: r.data.response.docs,
-					pages: Math.ceil(r.data.response.numFound / pageSize),
-					numFound: r.data.response.numFound,
-					loading: false
-				});
+			return axios.get(`/c/${this.state.collectionName}/select`, {
+				params
 			})
-	}
+				.then(r => {
+
+					this.setState({
+						data: r.data.response.docs,
+						pages: Math.ceil(r.data.response.numFound / pageSize),
+						numFound: r.data.response.numFound,
+						loading: false
+					});
+				})
+		}
 
 
 	fetchData(state, instance) {
@@ -115,10 +118,13 @@ class DataTable extends Component {
 			})
 	}
 
+	loadCollection() {
 
-	componentDidMount() {
-
-		axios.get("/status")
+		axios.get("/status", {
+			params: {
+				solr_url: this.state.solrURL
+			}
+		})
 			.then(r => {
 
 				let collections = [];
@@ -126,15 +132,17 @@ class DataTable extends Component {
 					collections.push(r.data.status[collection])
 				}
 
-				console.log(collections);
-
 				this.setState({
 					collections: collections,
 					collectionName: collections[0].name
 				})
 			})
 			.then(r => {
-				axios.get(`/c/${this.state.collectionName}/fields`)
+				axios.get(`/c/${this.state.collectionName}/fields`, {
+					params: {
+						solr_url: this.state.solrURL
+					}
+				})
 					.then(r => {
 
 						this.setState({
@@ -196,6 +204,20 @@ class DataTable extends Component {
 						<div className="card">
 							<div className="card-body">
 								<div className="mb-2">
+									<label>Solr URL</label>
+									<div>
+								    <input className="form-control" onKeyUp={(e) => {
+
+									    this.setState({
+										    solrURL:e.target.value,
+									    });
+								    }} />
+										<button className="btn btn-primary mt-2 bb-3" onClick={e => {
+											this.loadCollection()
+										}} >Load Collections</button>
+									</div>
+								</div>
+								<div className="mb-2">
 									<label>Select Collection</label>
 									<Select
 										value={this.state.selectedCollection}
@@ -204,7 +226,7 @@ class DataTable extends Component {
 												selectedCollection,
 												collectionName: selectedCollection.label,
 											}, () => {
-												this.refreshData()
+												this.refreshData();
 												this.refreshField()
 											});
 										}}
