@@ -11,7 +11,9 @@ class DataTable extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			collection: null,
+			collections: [],
+			collectionName: null,
+			selectedCollection: null,
 			fields: [],
 			data: [],
 			pages: null,
@@ -25,9 +27,21 @@ class DataTable extends Component {
 
 		this.fetchData = this.fetchData.bind(this);
 		this.refreshData = this.refreshData.bind(this);
+		this.refreshField = this.refreshField.bind(this);
 	}
 
-	refreshData() {
+		refreshField() {
+			axios.get(`/c/${this.state.collectionName}/fields`)
+				.then(r => {
+
+					this.setState({
+						selectedOption: [],
+						fields: r.data.fields
+					})
+				});
+		}
+
+		refreshData() {
 
 		let {pageSize, page} = this.state;
 		let fl = "*";
@@ -49,7 +63,7 @@ class DataTable extends Component {
 			params.fq = this.state.fq
 		}
 
-		return axios.get(`/c/${this.state.collection}/select`, {
+		return axios.get(`/c/${this.state.collectionName}/select`, {
 			params
 		})
 			.then(r => {
@@ -112,12 +126,15 @@ class DataTable extends Component {
 					collections.push(r.data.status[collection])
 				}
 
+				console.log(collections);
+
 				this.setState({
-					collection: collections[0].name
+					collections: collections,
+					collectionName: collections[0].name
 				})
 			})
 			.then(r => {
-				axios.get(`/c/${this.state.collection}/fields`)
+				axios.get(`/c/${this.state.collectionName}/fields`)
 					.then(r => {
 
 						this.setState({
@@ -166,12 +183,34 @@ class DataTable extends Component {
 			}
 		});
 
+		let collectionOptions = this.state.collections.map(c => {
+			return {
+				label: c.name,
+				value: c.name,
+			}
+		});
+
 		return (
-			<div>
-				<div className="row mt-4 mb-4">
-					<div className="col-12">
+			<div className="row mt-4">
+					<div className="col-3">
 						<div className="card">
 							<div className="card-body">
+								<div className="mb-2">
+									<label>Select Collection</label>
+									<Select
+										value={this.state.selectedCollection}
+										onChange={(selectedCollection) => {
+											this.setState({
+												selectedCollection,
+												collectionName: selectedCollection.label,
+											}, () => {
+												this.refreshData()
+												this.refreshField()
+											});
+										}}
+										options={collectionOptions}
+									/>
+								</div>
 								<div className="mb-2">
 									<label>Filter Query</label>
 									<div>
@@ -197,14 +236,12 @@ class DataTable extends Component {
 							</div>
 						</div>
 					</div>
-				</div>
 
-				{!!this.state.collection &&
-				<div className="row">
-					<div className="col-12">
+				{!!this.state.selectedCollection &&
+					<div className="col-9">
 						<div className="card">
 							<div className="card-body">
-								<h5 className="card-title">{this.state.collection} Found: {this.state.numFound}</h5>
+								<h5 className="card-title">{this.state.collectionName} Found: {this.state.numFound}</h5>
 								<ReactTable
 									manual
 									data={this.state.data}
@@ -219,7 +256,6 @@ class DataTable extends Component {
 								/>
 							</div>
 						</div>
-					</div>
 				</div>
 				}
 			</div>

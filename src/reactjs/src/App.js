@@ -25,7 +25,7 @@ class App extends Component {
 					  </ul>
 				  </div>
 			  </nav>
-			  <div className="container">
+			  <div className="container-fluid">
 				  <Route exact path="/" component={DataTable}/>
 				  <Route exact path="/pages/:page_name" component={BasePage}/>
 			  </div>
