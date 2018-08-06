@@ -95,6 +95,7 @@ class DataTable extends Component {
 
 		let start = (pageSize * (page+1)) - pageSize;
 		let params = {
+			solr_url: this.state.solrURL,
 			start,
 			rows: pageSize,
 			fl
@@ -104,7 +105,7 @@ class DataTable extends Component {
 			params.fq = this.state.fq
 		}
 
-		return axios.get(`/c/${this.state.collection}/select`, {
+		return axios.get(`/c/${this.state.collectionName}/select`, {
 			params
 		})
 			.then(r => {
